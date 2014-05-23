@@ -1,0 +1,54 @@
+<project name="Distributed Systems" default="package-all" basedir=".">
+	<property name="src" location="src"/>
+	<property name="build" location="classes"/>
+	<property name="jar-srv" location="TimeServer.jar"/>
+	<property name="jar-cli" location="TimeClient.jar"/>
+    <property name="mc-srv" value="at.schoenlaub.distributed.dts.timeserver.TimeServer"/>
+    <property name="mc-cli" value="at.schoenlaub.distributed.dts.timeclient.TimeClient"/>
+    <property name="multicastIP" value="224.0.2.1"/>
+    <property name="multicastPort" value="15000"/>
+    <property name="identifier" value="TS1"/>
+	<target name="init">
+		<mkdir dir="${build}"/>
+	</target>
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete>
+			<fileset dir="." includes="*.jar"/>
+		</delete>
+	</target>
+	<target name="compile" depends="init"
+        description="compile the sources" > 	
+		<javac srcdir="${src}" destdir="${build}" debug="on" includeantruntime="false" />
+	</target>	
+	<target name="package-srv" depends="compile" description="Packages all classes in a directory.">
+	<jar destfile="${jar-srv}" basedir="${build}" includes="at/schoenlaub/distributed/dts/timeserver/** at/schoenlaub/distributed/dts/common/**">
+            <manifest>
+                <attribute name="Main-Class" value="${mc-srv}"/>
+            </manifest>
+	</jar>
+	</target>
+	<target name="package-all" depends="package-cli,package-srv"/>
+	<target name="package-cli" depends="compile" description="Packages all classes in a directory.">
+	<jar destfile="${jar-cli}" basedir="${build}" includes="at/schoenlaub/distributed/dts/timeclient/** at/schoenlaub/distributed/dts/common/**">
+            <manifest>
+                <attribute name="Main-Class" value="${mc-cli}"/>
+            </manifest>
+	</jar>
+	</target>
+	<target name="run-server"
+		description="executes the generated server" depends="package-srv">
+		<java jar="${jar-srv}" fork="true">
+			<arg value="${identifier}"/>
+			<arg value="${multicastIP}"/>
+			<arg value="${multicastPort}"/>
+		</java>
+	</target>
+	<target name="run-client"
+		description="executes the generated client" depends="package-cli">
+		<java jar="${jar-cli}" fork="true">
+			<arg value="${multicastIP}"/>
+			<arg value="${multicastPort}"/>
+		</java>
+	</target>
+</project>
